@@ -1,21 +1,25 @@
-import {  MatchResult } from "ohm-js";
+import { MatchResult } from "ohm-js";
 import { addMulSemantics } from "./calculate";
 import grammar from "./addmul.ohm-bundle";
 
-export function evaluate(content: string): number
-{
-    return calculate(parse(content));
+export function evaluate(content: string): number {
+  return calculate(parse(content));
 }
-export class SyntaxError extends Error
+
+export class SyntaxError extends Error 
 {
 }
 
-function parse(content: string): MatchResult
+function parse(content: string): MatchResult 
 {
-    throw "Not implemented";
+  const match = grammar.match(content);
+  if (!match.succeeded()) {
+    throw new SyntaxError(match.message || "Invalid expression");
+  }
+  return match;
 }
 
-function calculate(expression: MatchResult):number
+function calculate(expression: MatchResult): number 
 {
-    throw "Not implemented"
+  return addMulSemantics(expression).calculate();
 }

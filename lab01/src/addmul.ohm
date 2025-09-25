@@ -1,3 +1,9 @@
 AddMul {
- // Write the rules here
+  AddExpr = AddExpr "+" MulExpr  -- add
+          | MulExpr
+  MulExpr = MulExpr "*" Primary  -- mul
+          | Primary
+  Primary = number
+          | "(" AddExpr ")"  -- paren
+  number = digit+
 }
