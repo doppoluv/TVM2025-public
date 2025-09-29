@@ -5,9 +5,9 @@ import { arithSemantics } from "./calculate";
 export const arithGrammar = grammar;
 export {ArithmeticActionDict, ArithmeticSemantics} from './arith.ohm-bundle';
 
-export function evaluate(content: string, params?: {[name:string]:number}): number
+export function evaluate(content: string, params: { [name: string]: number } = {}): number 
 {
-    return calculate(parse(content), params ?? {});
+  return calculate(parse(content), params);
 }
 export class SyntaxError extends Error
 {
@@ -15,10 +15,14 @@ export class SyntaxError extends Error
 
 export function parse(content: string): MatchResult
 {
-    throw "Not implemented";
+  const match = grammar.match(content);
+  if (!match.succeeded()) {
+    throw new SyntaxError(match.message || "Invalid expression");
+  }
+  return match;
 }
 
 function calculate(expression: MatchResult, params: {[name:string]: number}): number
 {
-    throw "Not implemented";
+  return arithSemantics(expression).calculate(params);
 }

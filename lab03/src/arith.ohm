@@ -1,3 +1,13 @@
 Arithmetic {
-    // write rules here
+  AddExpr = MulExpr (addOp MulExpr)*  -- binary
+  MulExpr = UnaryExpr (mulOp UnaryExpr)*  -- binary
+  UnaryExpr = "-" UnaryExpr  -- neg
+            | Primary
+  Primary = number
+          | variable
+          | "(" AddExpr ")"  -- paren
+  addOp = "+" | "-"
+  mulOp = "*" | "/"
+  number = digit+
+  variable = letter (letter | digit)*
 }
