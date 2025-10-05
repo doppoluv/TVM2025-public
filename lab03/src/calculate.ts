@@ -27,8 +27,8 @@ const arithCalc = {
       const opType = arg1.child(i).sourceString;
       const value = arg2.child(i).calculate(this.args.params);
       
-      if (opType === "/" && (value === 0 || isNaN(value))) {
-        throw new Error("Division by zero or undefined");
+      if (opType === "/" && value === 0) {
+        throw new Error("Division by zero");
       }
       if (isNaN(result) || isNaN(value)) {
         return NaN;
@@ -63,7 +63,9 @@ const arithCalc = {
 
   variable(_arg0, _arg1) {
     const name = this.sourceString;
-    if (!(name in this.args.params)) return NaN;
+    if (!(name in this.args.params)) {
+      return NaN;
+    }
     return this.args.params[name];
   },
 } satisfies ArithmeticActionDict<number>;
