@@ -5,7 +5,7 @@ export const arithSemantics: ArithSemantics = grammar.createSemantics() as Arith
 
 
 const arithCalc = {
-  AddExpr_binary(arg0, arg1, arg2) {
+  AddExpr(arg0, arg1, arg2) {
     let result = arg0.calculate(this.args.params);
     for (let i = 0; i < arg2.numChildren; i++) {
       const opType = arg1.child(i).sourceString;
@@ -21,7 +21,7 @@ const arithCalc = {
     return result;
   },
 
-  MulExpr_binary(arg0, arg1, arg2) {
+  MulExpr(arg0, arg1, arg2) {
     let result = arg0.calculate(this.args.params);
     for (let i = 0; i < arg2.numChildren; i++) {
       const opType = arg1.child(i).sourceString;

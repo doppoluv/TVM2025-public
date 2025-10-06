@@ -1,6 +1,6 @@
 Arithmetic {
-  AddExpr = MulExpr (addOp MulExpr)*  -- binary
-  MulExpr = UnaryExpr (mulOp UnaryExpr)*  -- binary
+  AddExpr = MulExpr (addOp MulExpr)*
+  MulExpr = UnaryExpr (mulOp UnaryExpr)*
   UnaryExpr = "-" UnaryExpr  -- neg
             | Primary
   Primary = number
