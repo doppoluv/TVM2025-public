@@ -31,7 +31,7 @@ export function printExpr(e: Expr, parentOp?: string, isRight?: boolean): string
       }
       
       const currentPrec = PREC[e.operator];
-      const parentPrec = parentOp === 'unary' ? PREC.unary : PREC[parentOp as keyof typeof PREC];
+      const parentPrec = PREC[parentOp as keyof typeof PREC];
       if (currentPrec < parentPrec) {
         return `(${result})`;
       }
