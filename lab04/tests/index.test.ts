@@ -46,4 +46,6 @@ describe('testing variables', () => {
     test("variables can be used", 3, parseAndPrint, "x + 1", "x+1");
     test("Two variables are handled", 3, parseAndPrint, "x + y", "x+y");
     test("Complex expressions are properly printed",  4, parseAndPrint, "(x * y + 1) * y * x", "(x*y+1)*y*x");
+    test("1", 3, parseAndPrint, "1 + 2 - (3 + 4)", "1+2-(3+4)")
+    test("2", 3, parseAndPrint, "1 + 2 + 3 + 4", "1+2+(3+4)")
 });
