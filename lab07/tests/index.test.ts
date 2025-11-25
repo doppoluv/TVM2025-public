@@ -51,5 +51,5 @@ describe('Testing simplify function', ()=>
     test("x*0*y=>0", 4, parseSimplifyAndCost, 0, "x*0*y", commutativeIdentities);
     test("x*(1+0*y)=>x", 4, parseSimplifyAndCost, 1, "x*(1+0*y)", commutativeIdentities);
     test("a+(b-a)=>b", 4, parseSimplifyAndCost, 1, "a+(b-a)", toughIdentities);
-    // test("(a+b)*(b+a)-(a-b)*(a-b)=>4*a*b", 5, parseSimplifyAndCost, 4, "(a+b)*(b+a)-(a-b)*(a-b)", toughIdentities);
+    test("(a+b)*(b+a)-(a-b)*(a-b)=>4*a*b", 5, parseSimplifyAndCost, 4, "(a+b)*(b+a)-(a-b)*(a-b)", toughIdentities);
 });
