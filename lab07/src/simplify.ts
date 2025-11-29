@@ -1,14 +1,8 @@
 import { Expr, createNumber, createVariable, createBinary, createUnary } from "../../lab04";
 import { cost } from "./cost";
 
-const memo = new WeakMap<Expr, Expr>();
 export function simplify(e: Expr, identities: [Expr, Expr][]): Expr {
-  if (memo.has(e)) {
-    return memo.get(e)!;
-  }
-
   const result = simplifyRec(e, identities);
-  memo.set(e, result);
   return result;
 }
 
@@ -41,14 +35,20 @@ function simplifyWithIdentities(e: Expr, identities: [Expr, Expr][]): Expr {
   let best = e;
   let bestCost = cost(e);
 
-  const queue: Expr[] = [e];
+  const queue: Array<{ expr: Expr; cost: number }> = [{ expr: e, cost: bestCost }];
   visited.add(serialize(e));
 
-  let iterations = 0;
-  const maxIterations = 5000;
-  while (queue.length > 0 && iterations <= maxIterations) {
-    iterations++;
-    const current = queue.shift()!;
+  const maxIterations = 500;
+  const maxQueueSize = 500;
+  for (let iterations = 0; iterations < maxIterations && queue.length > 0; iterations++) {
+    queue.sort((a, b) => a.cost - b.cost);
+    const { expr: current } = queue.shift()!;
+    const currentCost = cost(current);
+
+    if (currentCost < bestCost) {
+      best = current;
+      bestCost = currentCost;
+    }
 
     for (const [from, to] of identities) {
       for (const [pattern, replacement] of [[from, to], [to, from]]) {
@@ -69,11 +69,14 @@ function simplifyWithIdentities(e: Expr, identities: [Expr, Expr][]): Expr {
             bestCost = resultCost;
           }
 
-          if (resultCost <= bestCost + 2) {
-            queue.push(result);
-          }
+          queue.push({ expr: result, cost: resultCost });
         }
       }
+    }
+
+    if (queue.length > maxQueueSize) {
+      queue.sort((a, b) => a.cost - b.cost);
+      queue.splice(maxQueueSize);
     }
   }
 
@@ -85,25 +88,29 @@ function tryApplyAll(e: Expr, from: Expr, to: Expr): Expr[] {
 
   const fullMatch = matchPattern(from, e);
   if (fullMatch) {
-    results.push(substitute(to, fullMatch));
+    const substituted = substitute(to, fullMatch);
+    const folded = foldConstants(substituted);
+    if (JSON.stringify(folded) !== JSON.stringify(e)) {
+      results.push(folded);
+    }
   }
 
   if (e.type === "unary") {
     const subResults = tryApplyAll(e.operand, from, to);
     for (const sub of subResults) {
-      results.push(createUnary("-", sub));
+      results.push(foldConstants(createUnary("-", sub)));
     }
   }
 
   if (e.type === "binary") {
     const leftResults = tryApplyAll(e.left, from, to);
     for (const left of leftResults) {
-      results.push(createBinary(e.operator, left, e.right));
+      results.push(foldConstants(createBinary(e.operator, left, e.right)));
     }
 
     const rightResults = tryApplyAll(e.right, from, to);
     for (const right of rightResults) {
-      results.push(createBinary(e.operator, e.left, right));
+      results.push(foldConstants(createBinary(e.operator, e.left, right)));
     }
   }
 
@@ -117,7 +124,16 @@ function foldConstants(e: Expr): Expr {
 
   if (e.type === "unary") {
     const op = foldConstants(e.operand);
-    return op.type === "number" ? createNumber(-op.value) : createUnary("-", op);
+
+    if (op.type === "unary" && op.operator === "-") {
+      return op.operand;
+    }
+
+    if (op.type === "number") {
+      return createNumber(-op.value);
+    }
+
+    return createUnary("-", op);
   }
 
   if (e.type === "binary") {
@@ -131,7 +147,61 @@ function foldConstants(e: Expr): Expr {
         e.operator === "*" ? l.value * r.value :
         r.value === 0 ? null : Math.floor(l.value / r.value);
 
-      return v !== null ? createNumber(v) : createBinary(e.operator, l, r);
+      if (v !== null) {
+        return createNumber(v);
+      }
+    }
+
+    if (e.operator === "*") {
+      if (l.type === "number") {
+        if (l.value === 0) {
+          return createNumber(0);
+        }
+
+        if (l.value === 1) {
+          return r;
+        }
+      }
+
+      if (r.type === "number") {
+        if (r.value === 0) {
+          return createNumber(0);
+        }
+
+        if (r.value === 1) {
+          return l;
+        }
+      }
+    }
+
+    if (e.operator === "+") {
+      if (l.type === "number" && l.value === 0) {
+        return r;
+      }
+
+      if (r.type === "number" && r.value === 0) {
+        return l;
+      }
+    }
+
+    if (e.operator === "-") {
+      if (r.type === "number" && r.value === 0) {
+        return l;
+      }
+
+      if (deepEqual(l, r)) {
+        return createNumber(0);
+      }
+    }
+
+    if (e.operator === "/") {
+      if (l.type === "number" && l.value === 0) {
+        return createNumber(0);
+      }
+
+      if (r.type === "number" && r.value === 1) {
+        return l;
+      }
     }
 
     return createBinary(e.operator, l, r);
