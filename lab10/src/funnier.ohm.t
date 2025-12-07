@@ -27,6 +27,12 @@ Funnier <: Funny {
     FunctionCall := "length" "(" AddExpr ")" -- length
                   | variable "(" ArgList ")" -- regular
 
+    Primary := FunctionCall
+             | ArrayAccess
+             | number
+             | variable
+             | "(" AddExpr ")" -- paren
+
     Predicate = ImplyPred
 
     ImplyPred = OrPred ("->" ImplyPred)?
@@ -38,10 +44,10 @@ Funnier <: Funny {
     NotPred = "not"* AtomPred
 
     AtomPred = Quantifier -- quantifier
-             | FormulaRef -- formula_ref
              | "true" -- true
              | "false" -- false
              | Comparison -- comparison
+             | FormulaRef -- formula_ref
              | "(" Predicate ")" -- paren
 
     Quantifier = ("forall" | "exists") "(" Param "|" Predicate ")"
