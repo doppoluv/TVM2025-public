@@ -38,8 +38,8 @@ function simplifyWithIdentities(e: Expr, identities: [Expr, Expr][]): Expr {
   const queue: Array<{ expr: Expr; cost: number }> = [{ expr: e, cost: bestCost }];
   visited.add(serialize(e));
 
-  const maxIterations = 500;
-  const maxQueueSize = 500;
+  const maxIterations = 1000;
+  const maxQueueSize = 1000;
   for (let iterations = 0; iterations < maxIterations && queue.length > 0; iterations++) {
     queue.sort((a, b) => a.cost - b.cost);
     const { expr: current } = queue.shift()!;
