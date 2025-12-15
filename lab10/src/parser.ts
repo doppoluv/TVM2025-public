@@ -128,6 +128,7 @@ function checkFunctionCalls(module: ast.AnnotatedModule) {
 
             const argCount = Array.isArray(node.args) ? node.args.length : 0;
 
+            // Проверка на объявление функции
             if (!functionTable.has(funcName)) {
                 throw new Error(`function ${funcName} is not declared`);
             }
@@ -135,10 +136,12 @@ function checkFunctionCalls(module: ast.AnnotatedModule) {
             const funcInfo = functionTable.get(funcName)!;
             const expectedArgCount = funcInfo.params;
 
+            // Проверка кол-ва аргументов
             if (argCount !== expectedArgCount) {
                 throw new Error(`Function ${funcName} expects ${expectedArgCount} arguments but got ${argCount}`);
             }
 
+            // Проверка кол-ва возвращаемых значений
             if (context.expectedReturns !== undefined) {
                 const returnsCount = funcInfo.returns;
                 if (returnsCount !== context.expectedReturns) {
@@ -146,6 +149,7 @@ function checkFunctionCalls(module: ast.AnnotatedModule) {
                 }
             }
 
+            // Проверка аргументов (должны возвращать 1 значение)
             if (Array.isArray(node.args)) {
                 for (const arg of node.args) {
                     visitNode(arg, { expectedReturns: 1 });
