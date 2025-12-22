@@ -72,7 +72,6 @@ async function verifyFunction(
     } catch (error: any) {
         throw error;
     }
-
     wp = inlineFunctionCallsInPredicate(wp, module);
 
     const vc: ast.Predicate = {
@@ -80,7 +79,6 @@ async function verifyFunction(
         left: pre,
         right: wp
     } as ast.ImpliesPred;
-
     const simplifiedVC = simplifyPredicate(vc);
 
     try {
