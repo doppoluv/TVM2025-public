@@ -49,7 +49,9 @@ async function verifyFunction(
 
     let post: ast.Predicate;
     if (Array.isArray(func.postcondition)) {
-        if (func.postcondition.length === 0) return;
+        if (func.postcondition.length === 0) {
+            return;
+        }
         post = func.postcondition[0];
     } else {
         post = func.postcondition;
@@ -90,7 +92,9 @@ async function verifyFunction(
 }
 
 function checkSqrtStructure(func: ast.AnnotatedFunctionDef) {
-    if (func.body.type !== 'block') return;
+    if (func.body.type !== 'block') {
+        return;
+    }
 
     const stmts = (func.body as base.BlockStmt).stmts;
     let hasWhile = false;
@@ -115,7 +119,9 @@ function checkSqrtStructure(func: ast.AnnotatedFunctionDef) {
 }
 
 function inlineFunctionCallsInPredicate(pred: ast.Predicate, module: ast.AnnotatedModule): ast.Predicate {
-    if (!pred || !pred.kind) return pred;
+    if (!pred || !pred.kind) {
+        return pred;
+    }
 
     switch (pred.kind) {
         case 'true':
@@ -124,9 +130,9 @@ function inlineFunctionCallsInPredicate(pred: ast.Predicate, module: ast.Annotat
         case 'comparison':
             return {
                 kind: 'comparison',
-                left: inlineFunctionCallsInExpr((pred as ast.ComparisonPred).left, module, 0),  // добавлен параметр 0
+                left: inlineFunctionCallsInExpr((pred as ast.ComparisonPred).left, module, 0),
                 op: (pred as ast.ComparisonPred).op,
-                right: inlineFunctionCallsInExpr((pred as ast.ComparisonPred).right, module, 0)  // добавлен параметр 0
+                right: inlineFunctionCallsInExpr((pred as ast.ComparisonPred).right, module, 0)
             } as ast.ComparisonPred;
         case 'not':
             return {
@@ -379,7 +385,9 @@ function conditionToPredicate(cond: base.Condition): ast.Predicate {
 }
 
 function simplifyPredicate(pred: ast.Predicate): ast.Predicate {
-    if (!pred || !pred.kind) return pred;
+    if (!pred || !pred.kind) {
+        return pred;
+    }
 
     switch (pred.kind) {
         case 'and': {
@@ -579,7 +587,9 @@ function substituteArrayElement(pred: ast.Predicate, arrName: string, index: bas
             } as ast.ParenPred;
         case 'quantifier':
             const q = pred as ast.QuantifierPred;
-            if (q.param.name === arrName) return pred;
+            if (q.param.name === arrName) {
+                return pred;
+            }
             return {
                 kind: 'quantifier',
                 quantifier: q.quantifier,
@@ -592,7 +602,9 @@ function substituteArrayElement(pred: ast.Predicate, arrName: string, index: bas
 }
 
 function substituteArrayInExpr(expr: base.Expr, arrName: string, index: base.Expr, value: base.Expr): base.Expr {
-    if (!expr) return expr;
+    if (!expr) {
+        return expr;
+    }
 
     const eType = (expr as any).type;
 
@@ -637,13 +649,21 @@ function substituteArrayInExpr(expr: base.Expr, arrName: string, index: base.Exp
 }
 
 function areExprsEqual(e1: base.Expr, e2: base.Expr): boolean {
-    if (!e1 || !e2) return false;
+    if (!e1 || !e2) {
+        return false;
+    }
     const t1 = (e1 as any).type;
     const t2 = (e2 as any).type;
-    if (t1 !== t2) return false;
+    if (t1 !== t2) {
+        return false;
+    }
 
-    if (t1 === 'number') return (e1 as any).value === (e2 as any).value;
-    if (t1 === 'variable') return (e1 as any).name === (e2 as any).name;
+    if (t1 === 'number') {
+        return (e1 as any).value === (e2 as any).value;
+    }
+    if (t1 === 'variable') {
+        return (e1 as any).name === (e2 as any).name;
+    }
     if (t1 === 'binary') {
         return (e1 as any).operator === (e2 as any).operator &&
             areExprsEqual((e1 as any).left, (e2 as any).left) &&
@@ -790,7 +810,9 @@ function exprToZ3(
 ): Arith<any> {
     const eType = (expr as any).type;
 
-    if (eType === 'number') return z3.Int.val((expr as any).value);
+    if (eType === 'number') {
+        return z3.Int.val((expr as any).value);
+    }
 
     if (eType === 'variable') {
         const name = (expr as any).name;
@@ -820,7 +842,9 @@ function exprToZ3(
 
     if (eType === 'arraccess') {
         const arr = arrays.get((expr as any).name);
-        if (!arr) throw new Error(`Array ${(expr as any).name} not found`);
+        if (!arr) {
+            throw new Error(`Array ${(expr as any).name} not found`);
+        }
         const index = exprToZ3((expr as any).index, vars, arrays, module, solver, funcDefs);
         return arr.select(index) as Arith<any>;
     }
@@ -866,11 +890,8 @@ function addFunctionAxioms(
             }
 
             const n = z3.Int.const('n_axiom');
-
             solver.add(z3.ForAll([n] as any, z3.Implies(n.eq(0), funcSym.call(n).eq(1))));
-
             solver.add(z3.ForAll([n] as any, z3.Implies(n.gt(0), funcSym.call(n).eq(n.mul(funcSym.call(n.sub(1)))))));
-
             solver.add(funcSym.call(z3.Int.val(0)).eq(1));
             solver.add(funcSym.call(z3.Int.val(1)).eq(1));
             solver.add(funcSym.call(z3.Int.val(2)).eq(2));
@@ -890,51 +911,10 @@ async function proveTheorem(theorem: Bool<any>, func: ast.AnnotatedFunctionDef, 
 
     if (result === 'sat') {
         const model = solver.model();
-        const counterexample = printFuncCallSafe(func, model);
-        throw new Error(`Verification failed for function ${func.name}\nCounterexample:\n${counterexample}`);
+        throw new Error(`Verification failed for function ${func.name}\n`);
     } else if (result === 'unsat') {
         console.log(`Function ${func.name} verified successfully`);
     } else {
         throw new Error(`Verification inconclusive for function ${func.name}\nZ3 returned: ${result}`);
     }
-}
-
-function printFuncCallSafe(f: ast.AnnotatedFunctionDef, model: any): string {
-    const getVarValue = (name: string) => {
-        try {
-            const decl = model.decls().find((d: any) => d.name() === name);
-            if (!decl) return '?';
-
-            if (decl.arity && decl.arity() > 0) return '?';
-
-            const val = model.get(decl);
-            return val ? val.toString() : '?';
-        } catch (e) {
-            return '?';
-        }
-    };
-
-    const argExprs = f.parameters.map(p => {
-        if (p.varType !== 'int') return `${p.name}=<array>`;
-        const val = getVarValue(p.name);
-        return val;
-    });
-
-    const argsText = argExprs.join(', ');
-
-    const resExprs = f.returns.map(r => {
-        if (r.varType !== 'int') return `${r.name}=<array>`;
-        return `${r.name} = ${getVarValue(r.name)}`;
-    });
-
-    const resultsText = resExprs.join(', ');
-    let text = `${f.name}(${argsText}) => [${resultsText}]`;
-
-    for (const v of f.locals) {
-        if (v.varType === 'int') {
-            text += `\n${v.name} = ${getVarValue(v.name)}`;
-        }
-    }
-
-    return text;
 }
